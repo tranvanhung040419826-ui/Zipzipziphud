@@ -4,7 +4,7 @@ loadstring(game:HttpGet("https://raw.githubusercontent.com/daucobonhi/Ui-Redz-V2
 -- Window
 local Window = MakeWindow({
     Hub = {
-        Title = "zipzipziphud",
+        Title = "mioa mioa hud",
         Animation = "tonghop"
     },
     Key = {
@@ -316,7 +316,7 @@ AddButton(Tab5o,{
         loadstring(game:HttpGet("https://raw.githubusercontent.com/NagisaScript1/ChilliHub/refs/heads/main/SAB-ChilliHubScript"))()
     end
 })
-AddButton(Tab1o,{
+AddButton(Tab5o,{
     Name="trax hud",
     Callback=function()
         loadstring(game:HttpGet("https://raw.githubusercontent.com/StealABrainrotScripts11/Trax-Hub/refs/heads/main/TraxHubScript"))()
