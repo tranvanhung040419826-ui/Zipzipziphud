@@ -5037,7 +5037,11 @@ Q = Tabs.SeaEvent:AddToggle("Q", {Title = "Auto Attack Leviathan", Description =
 Q:OnChanged(function(Value)
   _G.Leviathan1 = Value
 end)
--- Hàm nhận diện quái gồng chiêu (Dán vào bên trong hoặc ngay trước spawn)
+-- Biến thời gian để quản lý việc né chiêu
+local lastDodgeTick = 0
+local dodgeDuration = 3 -- Thời gian duy trì ở trên cao (giây)
+
+-- Hàm nhận diện quái gồng chiêu (Đã tối ưu độ nhạy)
 local function IsBossAttacking(boss)
     if not boss or not boss:FindFirstChild("Humanoid") then return false end
     local playingAnims = boss.Humanoid:GetPlayingAnimationTracks()
@@ -5053,73 +5057,80 @@ local function IsBossAttacking(boss)
     return false
 end
 
--- Vòng lặp Sea Event tối ưu (Thay thế đoạn spawn cũ của bạn)
+-- Vòng lặp Sea Event Nâng Cao
 spawn(function()
     while task.wait() do 
         pcall(function()	
-            -- [ SHARK / TERRORS / PIRANHA ]
+            -- [ CÁC QUÁI PHỤ - SHARK / TERROR / PIRANHA / CREWS ]
             if _G.Shark then local a={"Shark"} if CheckShark() then for b,c in pairs(workspace.Enemies:GetChildren()) do if table.find(a,c.Name) and Attack.Alive(c) then repeat task.wait() Attack.Kill(c,_G.Shark) until not _G.Shark or not c.Parent or c.Humanoid.Health <= 0 end end end end
             if _G.TerrorShark then local a={"Terrorshark"} if CheckTerrorShark() then for b,c in pairs(workspace.Enemies:GetChildren()) do if table.find(a,c.Name) and Attack.Alive(c) then repeat task.wait() Attack.KillSea(c,_G.TerrorShark) until not _G.TerrorShark or not c.Parent or c.Humanoid.Health <= 0 end end end end
             if _G.Piranha then local a={"Piranha"} if CheckPiranha() then for b,c in pairs(workspace.Enemies:GetChildren()) do if table.find(a,c.Name) and Attack.Alive(c) then repeat task.wait() Attack.Kill(c,_G.Piranha) until not _G.Piranha or not c.Parent or c.Humanoid.Health <= 0 end end end end
             if _G.MobCrew then local a={"Fish Crew Member"} if CheckFishCrew() then for b,c in pairs(workspace.Enemies:GetChildren()) do if table.find(a,c.Name) and Attack.Alive(c) then repeat task.wait() Attack.Kill(c,_G.MobCrew) until not _G.MobCrew or not c.Parent or c.Humanoid.Health <= 0 end end end end
             if _G.HCM then local a={"Haunted Crew Member"} if CheckHauntedCrew() then for b,c in pairs(workspace.Enemies:GetChildren()) do if table.find(a,c.Name) and Attack.Alive(c) then repeat task.wait() Attack.Kill(c,_G.HCM) until not _G.HCM or not c.Parent or c.Humanoid.Health <= 0 end end end end
 
-            -- [ SEA BEAST - NÉ CHIÊU GÓC CHẾT ]
-            if _G.SeaBeast1 then 
-                if workspace.SeaBeasts:FindFirstChild("SeaBeast1") then 
-                    for a,b in pairs(workspace.SeaBeasts:GetChildren()) do 
-                        if b:FindFirstChild("HumanoidRootPart") and b:FindFirstChild("Health") and b.Health.Value > 0 then 
-                            repeat task.wait()
-                                local waterPos = game:GetService("Workspace").Map["WaterBase-Plane"].Position.Y
-                                if IsBossAttacking(b) then
-                                    -- PHẢN XẠ NHẠY: Bay vọt lên góc chết Y + 1200
-                                    _tp(CFrame.new(b.HumanoidRootPart.Position.X, waterPos + 1200, b.HumanoidRootPart.Position.Z))
-                                else
-                                    -- VỊ TRÍ ĐÁNH: Quay lại tầm đánh
-                                    _tp(CFrame.new(b.HumanoidRootPart.Position.X, waterPos + 200, b.HumanoidRootPart.Position.Z))
-                                end
-
-                                if plr:DistanceFromCharacter(b.HumanoidRootPart.CFrame.Position) <= 500 then 
-                                    AitSeaSkill_Custom = b.HumanoidRootPart.CFrame; MousePos = AitSeaSkill_Custom.Position;
-                                    if CheckF() then weaponSc("Blox Fruit") Useskills("Blox Fruit","Z") Useskills("Blox Fruit","X") Useskills("Blox Fruit","C")
-                                    else Useskills("Melee","Z") Useskills("Melee","X") Useskills("Melee","C") task.wait(.1) Useskills("Sword","Z") Useskills("Sword","X") end
-                                end 
-                            until not _G.SeaBeast1 or not b.Parent or b.Health.Value <= 0 
-                        end 
-                    end 
-                end 
+            -- [ SEA BEAST & LEVIATHAN - CƠ CHẾ NÉ THÔNG MINH ]
+            local targetBoss = nil
+            if _G.SeaBeast1 and workspace.SeaBeasts:FindFirstChild("SeaBeast1") then
+                targetBoss = workspace.SeaBeasts:FindFirstChild("SeaBeast1")
+            elseif _G.Leviathan1 and workspace.SeaBeasts:FindFirstChild("Leviathan") then
+                targetBoss = workspace.SeaBeasts:FindFirstChild("Leviathan")
             end
 
-            -- [ LEVIATHAN - NÉ CHIÊU TUYỆT ĐỐI ]
-            if _G.Leviathan1 then 
-                if workspace.SeaBeasts:FindFirstChild("Leviathan") then 
-                    for a,b in pairs(workspace.SeaBeasts:GetChildren()) do 
-                        if b:FindFirstChild("HumanoidRootPart") and b:FindFirstChild("Health") and b.Health.Value > 0 then 
+            if targetBoss then
+                for _, b in pairs(workspace.SeaBeasts:GetChildren()) do
+                    if b:FindFirstChild("HumanoidRootPart") and (b:FindFirstChild("Health") or b:FindFirstChild("Humanoid")) then
+                        local health = b:FindFirstChild("Health") and b.Health.Value or b.Humanoid.Health
+                        if health > 0 then
                             repeat task.wait()
+                                if not b:FindFirstChild("HumanoidRootPart") then break end
+                                
                                 local waterPos = game:GetService("Workspace").Map["WaterBase-Plane"].Position.Y
-                                if IsBossAttacking(b) then
-                                    -- LEVIATHAN CHIÊU RỘNG: Bay lên cực cao Y + 2000
-                                    _tp(CFrame.new(b.HumanoidRootPart.Position.X, waterPos + 2000, b.HumanoidRootPart.Position.Z))
-                                else
-                                    _tp(CFrame.new(b.HumanoidRootPart.Position.X, waterPos + 280, b.HumanoidRootPart.Position.Z))
+                                local bossPos = b.HumanoidRootPart.Position
+                                local isAttacking = IsBossAttacking(b)
+                                
+                                -- Nếu quái đang tung chiêu, reset timer né
+                                if isAttacking then
+                                    lastDodgeTick = tick()
                                 end
 
-                                if plr:DistanceFromCharacter(b.HumanoidRootPart.CFrame.Position) <= 500 then 
-                                    local target = b:FindFirstChild("Leviathan Segment") or b.HumanoidRootPart
-                                    MousePos = target.Position;
-                                    if CheckF() then weaponSc("Blox Fruit") Useskills("Blox Fruit","Z") Useskills("Blox Fruit","X") Useskills("Blox Fruit","C")
-                                    else Useskills("Melee","Z") Useskills("Melee","X") Useskills("Melee","C") end
-                                end 
-                            until not _G.Leviathan1 or not b.Parent or b.Health.Value <= 0 
-                        end 
-                    end 
-                end 
+                                -- Kiểm tra nếu vẫn còn trong thời gian 3 giây né chiêu
+                                if tick() - lastDodgeTick < dodgeDuration then
+                                    -- ĐANG NÉ: Bay lên đỉnh đầu quái (Vừa né Beam, vừa đủ tầm cho Skill rót xuống)
+                                    -- Độ cao 320 là khoảng cách an toàn nhất cho cả SB và Levi
+                                    _tp(CFrame.new(bossPos.X, math.max(waterPos + 380, bossPos.Y + 320), bossPos.Z))
+                                else
+                                    -- ĐANG ĐÁNH: Tầm thấp để M1 hoạt động tốt nhất
+                                    _tp(CFrame.new(bossPos.X, math.max(waterPos + 180, bossPos.Y + 130), bossPos.Z + 30))
+                                end
+
+                                -- Tự động xả Skill
+                                local dist = plr:DistanceFromCharacter(bossPos)
+                                if dist <= 650 then
+                                    local attackTarget = b:FindFirstChild("Leviathan Segment") or b.HumanoidRootPart
+                                    MousePos = attackTarget.Position
+                                    AitSeaSkill_Custom = attackTarget.CFrame
+                                    
+                                    if CheckF() then 
+                                        weaponSc("Blox Fruit") Useskills("Blox Fruit","Z") Useskills("Blox Fruit","X") Useskills("Blox Fruit","C")
+                                    else 
+                                        Useskills("Melee","Z") Useskills("Melee","X") Useskills("Melee","C") 
+                                        if _G.SeaBeast1 then task.wait(0.1) Useskills("Sword","Z") Useskills("Sword","X") end
+                                    end
+                                end
+                            until (not _G.SeaBeast1 and not _G.Leviathan1) or not b.Parent or health <= 0
+                        end
+                    end
+                end
             end
 
             -- [ THUYỀN CHIẾN ]
             if _G.FishBoat then if CheckEnemiesBoat() then for a,b in pairs(workspace.Enemies:GetChildren()) do if b:FindFirstChild("Health") and b.Health.Value>0 and b:FindFirstChild("VehicleSeat") then repeat task.wait() if b.Name=="FishBoat" then _tp(b.Engine.CFrame*CFrame.new(0,-55,-25)) end if plr:DistanceFromCharacter(b.Engine.CFrame.Position)<=150 then MousePos=b.Engine.Position; if CheckF() then weaponSc("Blox Fruit") Useskills("Blox Fruit","Z") Useskills("Blox Fruit","X") Useskills("Blox Fruit","C") else Useskills("Melee","Z") Useskills("Melee","X") Useskills("Melee","C") end end until _G.FishBoat==false or b.Health.Value<=0 end end end end
             if _G.PGB then if CheckPirateGrandBrigade() then for a,b in pairs(workspace.Enemies:GetChildren()) do if b:FindFirstChild("Health") and b.Health.Value>0 and b:FindFirstChild("VehicleSeat") then repeat task.wait() if b.Name=="PirateBrigade" then _tp(b.Engine.CFrame*CFrame.new(0,-30,-10)) elseif b.Name=="PirateGrandBrigade" then _tp(b.Engine.CFrame*CFrame.new(0,-60,-50)) end if plr:DistanceFromCharacter(b.Engine.CFrame.Position)<=150 then MousePos=b.Engine.Position; if CheckF() then weaponSc("Blox Fruit") Useskills("Blox Fruit","Z") Useskills("Blox Fruit","X") Useskills("Blox Fruit","C") else Useskills("Melee","Z") Useskills("Melee","X") Useskills("Melee","C") end end until _G.PGB==false or b.Health.Value<=0 end end end end
         end)
+        
+        -- Nghỉ một chút sau mỗi chu kỳ check lớn (như bạn yêu cầu 5-7s, nhưng thực tế để farm ngon nên để thấp hơn)
+        -- Mình đặt mặc định check rất nhanh để né chiêu, nếu bạn muốn farm chậm lại thì chỉnh ở đây.
+        task.wait(0.01) 
     end
 end)
 Tabs.SeaEvent:AddSection("Kitsune Island / Event")
