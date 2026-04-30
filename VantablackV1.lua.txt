@@ -5037,10 +5037,6 @@ Q = Tabs.SeaEvent:AddToggle("Q", {Title = "Auto Attack Leviathan", Description =
 Q:OnChanged(function(Value)
   _G.Leviathan1 = Value
 end)
--- Biến thời gian để quản lý việc né chiêu
-local lastDodgeTick = 0
-local dodgeDuration = 3 -- Thời gian duy trì ở trên cao (giây)
-
 -- Hàm nhận diện quái gồng chiêu (Đã tối ưu độ nhạy)
 local function IsBossAttacking(boss)
     if not boss or not boss:FindFirstChild("Humanoid") then return false end
@@ -5128,6 +5124,10 @@ spawn(function()
             if _G.PGB then if CheckPirateGrandBrigade() then for a,b in pairs(workspace.Enemies:GetChildren()) do if b:FindFirstChild("Health") and b.Health.Value>0 and b:FindFirstChild("VehicleSeat") then repeat task.wait() if b.Name=="PirateBrigade" then _tp(b.Engine.CFrame*CFrame.new(0,-30,-10)) elseif b.Name=="PirateGrandBrigade" then _tp(b.Engine.CFrame*CFrame.new(0,-60,-50)) end if plr:DistanceFromCharacter(b.Engine.CFrame.Position)<=150 then MousePos=b.Engine.Position; if CheckF() then weaponSc("Blox Fruit") Useskills("Blox Fruit","Z") Useskills("Blox Fruit","X") Useskills("Blox Fruit","C") else Useskills("Melee","Z") Useskills("Melee","X") Useskills("Melee","C") end end until _G.PGB==false or b.Health.Value<=0 end end end end
         end)
         
+        -- Biến thời gian để quản lý việc né chiêu
+         local lastDodgeTick = 0
+         local dodgeDuration = 3 -- Thời gian duy trì ở trên cao (giây)
+
         -- Nghỉ một chút sau mỗi chu kỳ check lớn (như bạn yêu cầu 5-7s, nhưng thực tế để farm ngon nên để thấp hơn)
         -- Mình đặt mặc định check rất nhanh để né chiêu, nếu bạn muốn farm chậm lại thì chỉnh ở đây.
         task.wait(0.01) 
