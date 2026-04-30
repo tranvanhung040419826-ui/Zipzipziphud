@@ -10440,56 +10440,86 @@ JoinJobIdButton = Tabs.ServerTab:Button({
 });
 local HttpService = game:GetService("HttpService")
 
-local OriginalTexts = {} -- Lưu bản gốc để dịch ngược sang tiếng Anh chuẩn 100%
+-- ===== 1. ENGINE DỊCH THUẬT (CỰC NGON - SIÊU TỐC ĐỘ) =====
+local OriginalTexts = {} 
+local TranslatedCache = {} -- Bộ nhớ đệm: Lưu các từ đã dịch để không gọi API trùng lặp
+getgenv().CurrentLang = "en" -- Mặc định là EN, chưa bấm là nguyên bản
 
 local function translateText(text, targetLang)
     if not text or text == "" or tonumber(text) or #text <= 1 then return nil end
+    if targetLang == "en" then return text end 
+    
+    -- Nếu từ này đã được dịch trước đó, lấy luôn từ Cache (Tốc độ ánh sáng)
+    if TranslatedCache[text] then return TranslatedCache[text] end
+
     local url = string.format("https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl=%s&dt=t&q=%s", targetLang, HttpService:UrlEncode(text))
     local success, response = pcall(function() return request({Url = url, Method = "GET"}) end)
     if success and response.StatusCode == 200 then
         local data = HttpService:JSONDecode(response.Body)
-        return data[1][1][1]
+        local translatedStr = data[1][1][1]
+        
+        TranslatedCache[text] = translatedStr -- Lưu vào bộ nhớ đệm
+        return translatedStr
     end
     return nil
 end
 
-getgenv().TranslateFullHub = function(lang)
-    local CoreGui = game:GetService("CoreGui")
-    for _, obj in ipairs(CoreGui:GetDescendants()) do
-        if obj:IsA("TextLabel") or obj:IsA("TextButton") then
-            -- Lưu lại văn bản gốc ngay lần đầu quét
-            if not OriginalTexts[obj] then
-                OriginalTexts[obj] = obj.Text
-            end
-            
-            local original = OriginalTexts[obj]
-            if lang == "en" then
-                obj.Text = original -- Trả về tiếng Anh gốc
-            else
-                task.spawn(function()
-                    local translated = translateText(original, lang)
-                    if translated then obj.Text = translated end
-                end)
-            end
+local function ApplyTranslationToObj(obj)
+    -- Thêm TextBox vì nhiều tab phụ của UI library dùng TextBox thay vì TextLabel
+    if obj:IsA("TextLabel") or obj:IsA("TextButton") or obj:IsA("TextBox") then
+        if not OriginalTexts[obj] then
+            OriginalTexts[obj] = obj.Text -- Lưu lại bản gốc ngay lần đầu thấy nó
+        end
+        
+        local original = OriginalTexts[obj]
+        if getgenv().CurrentLang == "en" then
+            obj.Text = original
+        else
+            task.spawn(function()
+                local translated = translateText(original, getgenv().CurrentLang)
+                if translated then obj.Text = translated end
+            end)
         end
     end
 end
+
+getgenv().TranslateFullHub = function(lang)
+    getgenv().CurrentLang = lang
+    local CoreGui = game:GetService("CoreGui")
+    
+    -- Quét toàn bộ UI ĐANG HIỆN HỮU
+    for _, obj in ipairs(CoreGui:GetDescendants()) do
+        ApplyTranslationToObj(obj)
+    end
+end
+
+-- ===== THEO DÕI TAB PHỤ (FIX LỖI THIẾU CHỮ) =====
+-- Khi bạn click mở một tab phụ, UI mới tạo ra các nút. Đoạn này sẽ tóm gọn tụi nó.
+if not getgenv().TranslationConnection then
+    getgenv().TranslationConnection = game:GetService("CoreGui").DescendantAdded:Connect(function(obj)
+        task.delay(0.1, function() -- Đợi 0.1s cho UI load xong Text gốc
+            if getgenv().CurrentLang ~= "en" then
+                ApplyTranslationToObj(obj)
+            end
+        end)
+    end)
+end
+
+-- ===== 2. HAI NÚT DỊCH (THÊM VÀO TAB CỦA BẠN) =====
+
 Tabs.ServerTab:Button({
-    Title = "Switch to Vietnamese",
+    Title = "Dịch sang Tiếng Việt (VI)",
     Callback = function()
         getgenv().TranslateFullHub("vi")
     end
 })
+
 Tabs.ServerTab:Button({
-    Title = "Switch to English",
+    Title = "Switch to English (EN)",
     Callback = function()
         getgenv().TranslateFullHub("en")
     end
 })
-task.spawn(function()
-    task.wait(2) -- Đợi 2 giây cho UI hiện hết rồi dịch
-    getgenv().TranslateFullHub("vi")
-end)
 StatusServerSection = Tabs.ServerTab:Section({
     Title = "Status",
     TextXAlignment = "Left"
