@@ -148,16 +148,7 @@ _G.Time = 0  -- Thời gian hoạt động
 -- Định nghĩa thế giới và cấu hình đảo
 local World1, World2, World3 = false, false, false
 
-if game.PlaceId == 2753691307 then
-    World1 = true
-elseif game.PlaceId == 4442272183 then
-    World2 = true
-elseif game.PlaceId == 7449423635 then
-    World3 = true
-end
-    game.Players.LocalPlayer:Kick("Script có chút trục trặc xin vui lòng thử lại")
-    return
-end 
+World3 = true
 
 -- Cấu hình đảo dựa trên thế giới
 local distbyp, island
