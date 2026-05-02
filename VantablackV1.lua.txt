@@ -803,8 +803,6 @@ local Tabs = {
   Fruit = Window:AddTab({Title = "Fruit Sniper", Icon = "cherry"}),
   Misc = Window:AddTab({Title = "Misc", Icon = "rbxassetid://6031280882"})
 }
-local Bone = Tabs.Status:AddParagraph({Title = "Bone", Desc = ""})
-spawn(function() while wait() do pcall(function() local bones = game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("Bones", "Check") Bone:SetDesc("You Have : " .. tostring(bones) .. " Bones") end) end end)
 local FarmLevel = Tabs.Main:AddToggle("FarmLevel", {Title = "Auto Farm Level", Description = "", Default = false})
 FarmLevel:OnChanged(function(Value)
   _G.Level = Value
