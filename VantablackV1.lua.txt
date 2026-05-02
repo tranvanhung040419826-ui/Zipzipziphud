@@ -690,119 +690,235 @@ QuestNeta = function()
   }
 end
 local Fluent = loadstring(game:HttpGet("https://github.com/dawid-scripts/Fluent/releases/latest/download/main.lua"))()
-local Window = Fluent:CreateWindow({Title = "Vantablack X Hub",SubTitle = "| By Trần Duy Khánh",TabWidth = 155,Size = UDim2.fromOffset(555, 320),Acrylic = false,Theme = "Dark",MinimizeKey = Enum.KeyCode.End})
+local Window = Fluent:CreateWindow({
+    Title = "Vantablack X Hub",
+    SubTitle = "| By Trần Duy Khánh",
+    TabWidth = 155,
+    Size = UDim2.fromOffset(555, 320),
+    Acrylic = false,
+    Theme = "Dark",
+    MinimizeKey = Enum.KeyCode.End
+})
 
+-- Services
 local CoreGui = game:GetService("CoreGui")
 local VirtualInputManager = game:GetService("VirtualInputManager")
 local UserInputService = game:GetService("UserInputService")
+local TeleportService = game:GetService("TeleportService")
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local Lighting = game:GetService("Lighting")
 
--- Xóa GUI cũ nếu tồn tại
+-- Xóa GUI cũ
 if CoreGui:FindFirstChild("ControlButtonGUI") then
     CoreGui.ControlButtonGUI:Destroy()
 end
 
-local ScreenGui = Instance.new("ScreenGui")
+-- Toggle Button "V"
+local ScreenGui = Instance.new("ScreenGui", CoreGui)
 ScreenGui.Name = "ControlButtonGUI"
-ScreenGui.Parent = CoreGui
-ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 
-local ToggleButton = Instance.new("TextButton")
-ToggleButton.Name = "MainButton"
+local ToggleButton = Instance.new("TextButton", ScreenGui)
 ToggleButton.Size = UDim2.new(0, 50, 0, 50)
--- Đặt vị trí ở góc dưới bên trái
 ToggleButton.Position = UDim2.new(0, 20, 1, -70) 
 ToggleButton.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
-ToggleButton.BorderSizePixel = 0
-ToggleButton.AutoButtonColor = false
-ToggleButton.Parent = ScreenGui
-
 ToggleButton.Text = "V"
 ToggleButton.TextColor3 = Color3.fromRGB(255, 255, 255)
 ToggleButton.TextSize = 24
 ToggleButton.Font = Enum.Font.FredokaOne
 
--- Bo tròn hoàn hảo
-local Corner = Instance.new("UICorner")
+local Corner = Instance.new("UICorner", ToggleButton)
 Corner.CornerRadius = UDim.new(1, 0)
-Corner.Parent = ToggleButton
-
--- Viền màu đen xám bóng bẩy
-local Stroke = Instance.new("UIStroke")
-Stroke.Color = Color3.fromRGB(60, 60, 60) -- Màu xám bạc
+local Stroke = Instance.new("UIStroke", ToggleButton)
+Stroke.Color = Color3.fromRGB(60, 60, 60)
 Stroke.Thickness = 2.5
-Stroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
-Stroke.Parent = ToggleButton
 
--- Tạo hiệu ứng Gradient (Màu chuyển từ trên xuống dưới)
-local Gradient = Instance.new("UIGradient")
-Gradient.Color = ColorSequence.new({
-    ColorSequenceKeypoint.new(0, Color3.fromRGB(50, 50, 50)), -- Xám ở trên
-    ColorSequenceKeypoint.new(1, Color3.fromRGB(0, 0, 0))    -- Đen ở dưới
-})
-Gradient.Rotation = 90
-Gradient.Parent = ToggleButton
-
--- Thêm hiệu ứng nhấn (Hover)
-ToggleButton.MouseEnter:Connect(function()
-    Stroke.Color = Color3.fromRGB(100, 100, 100)
-    ToggleButton.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
-end)
-
-ToggleButton.MouseLeave:Connect(function()
-    Stroke.Color = Color3.fromRGB(60, 60, 60)
-    ToggleButton.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
-end)
-
--- LOGIC CLICK (Giả lập phím End để bật/tắt Menu)
 ToggleButton.MouseButton1Click:Connect(function()
-    -- Hiệu ứng nhấn nhẹ
-    ToggleButton:TweenSize(UDim2.new(0, 45, 0, 45), "Out", "Quad", 0.1, true)
-    task.wait(0.1)
-    ToggleButton:TweenSize(UDim2.new(0, 50, 0, 50), "Out", "Quad", 0.1, true)
-    
     VirtualInputManager:SendKeyEvent(true, Enum.KeyCode.End, false, game)
     VirtualInputManager:SendKeyEvent(false, Enum.KeyCode.End, false, game)
 end)
 
--- LOGIC KÉO THẢ (DRAG)
-local dragging, dragStart, startPos
-ToggleButton.InputBegan:Connect(function(input)
-    if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
-        dragging = true
-        dragStart = input.Position
-        startPos = ToggleButton.Position
-    end
-end)
-
-UserInputService.InputChanged:Connect(function(input)
-    if dragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
-        local delta = input.Position - dragStart
-        ToggleButton.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
-    end
-end)
-
-UserInputService.InputEnded:Connect(function(input)
-    if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
-        dragging = false
-    end
-end)
+-- Tabs
 local Tabs = {
-  Shop = Window:AddTab({Title = "Auto Shop", Icon = "shopping-cart"}),
-  Combat = Window:AddTab({Title = "Combat / PvP", Icon = "user"}),
-  Settings = Window:AddTab({Title = "Config", Icon = "rbxassetid://7734053495"}),
-  Main = Window:AddTab({Title = "Main Farm", Icon = "home"}),
-  Melee = Window:AddTab({Title = "Auto Melee", Icon = "rbxassetid://11162889532"}),
-  Quests = Window:AddTab({Title = "Material Farm", Icon = "rbxassetid://13075622619"}),
-  SeaEvent = Window:AddTab({Title = "Sea Events", Icon = "rbxassetid://10709783577"}),
-  Mirage = Window:AddTab({Title = "Race V4 / Mirage", Icon = "rbxassetid://11162889532"}),
-  Drago = Window:AddTab({Title = "Auto Dragon", Icon = "layers"}),
-  Prehistoric = Window:AddTab({Title = "Auto Prehistoric", Icon = "flame"}),
-  Raids = Window:AddTab({Title = "Auto Raid", Icon = "skull"}),
-  Travel = Window:AddTab({Title = "Teleports", Icon = "map-pin"}),
-  Fruit = Window:AddTab({Title = "Fruit Sniper", Icon = "cherry"}),
-  Misc = Window:AddTab({Title = "Misc", Icon = "rbxassetid://6031280882"})
+    Status = Window:AddTab({Title = "Status / Server", Icon = "info"}),
+    Main = Window:AddTab({Title = "Main Farm", Icon = "home"}),
+    Combat = Window:AddTab({Title = "Combat / PvP", Icon = "user"}),
+    Shop = Window:AddTab({Title = "Auto Shop", Icon = "shopping-cart"}),
+    Melee = Window:AddTab({Title = "Auto Melee", Icon = "crosshair"}), -- Đã fix icon
+    Quests = Window:AddTab({Title = "Material Farm", Icon = "scroll"}),
+    SeaEvent = Window:AddTab({Title = "Sea Events", Icon = "waves"}),
+    Mirage = Window:AddTab({Title = "Race V4 / Mirage", Icon = "moon"}),
+    Raids = Window:AddTab({Title = "Auto Raid", Icon = "skull"}),
+    Fruit = Window:AddTab({Title = "Fruit Sniper", Icon = "cherry"}),
+    Settings = Window:AddTab({Title = "Config", Icon = "settings"})
 }
- 
+
+local v1 = Tabs.Status -- Gán v1 để khớp với code bạn gửi
+
+-----------------------------------------------------------------------
+-- TÍCH HỢP CHỨC NĂNG BẠN GỬI
+-----------------------------------------------------------------------
+
+-- 1. Time Zone
+local Time = v1:AddParagraph({Title = "Time Zone", Desc = ""})
+function UpdateOS()
+    local date = os.date("*t")
+    local hour = (date.hour) % 24
+    local ampm = hour < 12 and "AM" or "PM"
+    local timezone = string.format("%02i:%02i:%02i %s",((hour - 1) % 12) + 1,date.min,date.sec,ampm)
+    local datetime = string.format("%02d/%02d/%04d", date.day, date.month, date.year)
+    local code = "N/A"
+    pcall(function() code = game:GetService("LocalizationService"):GetCountryRegionForPlayerAsync(Players.LocalPlayer) end)
+    Time:SetDesc(datetime .. " - " .. timezone .. " [ " .. code .. " ]")
+end
+task.spawn(function()
+    while task.wait(1) do UpdateOS() end
+end)
+
+-- 2. Game Time
+local Timmessss = v1:AddParagraph({Title = "Time", Desc = ""})
+function UpdateTime()
+    local GameTime = math.floor(workspace.DistributedGameTime + 0.5)
+    local Hour = math.floor(GameTime / (60 ^ 2)) % 24
+    local Minute = math.floor(GameTime / 60) % 60
+    local Second = GameTime % 60
+    Timmessss:SetDesc(Hour .. " Hour (h) " ..Minute .. " Minute (m) " ..Second .. " Second (s) ")
+end
+task.spawn(function()
+    while task.wait(1) do UpdateTime() end
+end)
+
+-- 3. Check Islands (Mirage, Kitsune, Prehistoric, Frozen)
+local Miragecheck = v1:AddParagraph({Title = "Mirage Island", Desc = "Status: "})
+local Kitsunecheck = v1:AddParagraph({Title = "Kitsune Island", Desc = "Status: "})
+local CPrehistoriccheck = v1:AddParagraph({Title = "Prehistoric Island", Desc = "Status: "})
+local FrozenIsland = v1:AddParagraph({Title = "Frozen Dimension", Desc = "Status: "})
+
+task.spawn(function()
+    while task.wait(2) do
+        pcall(function()
+            Miragecheck:SetDesc(workspace._WorldOrigin.Locations:FindFirstChild('Mirage Island') and "✅" or "❌")
+            Kitsunecheck:SetDesc(workspace.Map:FindFirstChild("KitsuneIsland") and "✅" or "❌")
+            CPrehistoriccheck:SetDesc(workspace._WorldOrigin.Locations:FindFirstChild('Prehistoric Island') and "✅" or "❌")
+            FrozenIsland:SetDesc(workspace._WorldOrigin.Locations:FindFirstChild('Frozen Dimension') and "✅" or "❌")
+        end)
+    end
+end)
+
+-- 4. Bosses & Events
+local MobCakePrince = v1:AddParagraph({Title = "Dimension Killed", Desc = ""})
+local TyrantStatus = v1:AddParagraph({Title = "Tyrant of the Skies", Desc = "Status: "})
+local CheckRip = v1:AddParagraph({Title = "Rip_Indra", Desc = "Status: "})
+local CheckDoughKing = v1:AddParagraph({Title = "Dough King", Desc = "Status: "})
+local EliteHunter = v1:AddParagraph({Title = "Elite Hunter", Desc = "Status: "})
+
+task.spawn(function()
+    while task.wait(3) do
+        pcall(function()
+            -- Cake Prince
+            local response = ReplicatedStorage.Remotes.CommF_:InvokeServer("CakePrinceSpawner")
+            if type(response) == "string" then
+                MobCakePrince:SetDesc("Kill: " .. (string.match(response, "%d+") or "0"))
+            else MobCakePrince:SetDesc("Cake Prince: ✅") end
+            
+            -- Other Bosses
+            TyrantStatus:SetDesc(workspace.Enemies:FindFirstChild("Tyrant of the Skies") and "✅" or "❌")
+            CheckRip:SetDesc((ReplicatedStorage:FindFirstChild("rip_indra True Form") or workspace.Enemies:FindFirstChild("rip_indra")) and "✅" or "❌")
+            CheckDoughKing:SetDesc((ReplicatedStorage:FindFirstChild("Dough King") or workspace.Enemies:FindFirstChild("Dough King")) and "✅" or "❌")
+            
+            -- Elite Hunter
+            local progress = ReplicatedStorage.Remotes.CommF_:InvokeServer("EliteHunter", "Progress")
+            local eliteExist = workspace.Enemies:FindFirstChild("Diablo") or workspace.Enemies:FindFirstChild("Deandre") or workspace.Enemies:FindFirstChild("Urban")
+            EliteHunter:SetDesc((eliteExist and "✅" or "❌") .. " | Killed: " .. tostring(progress))
+        end)
+    end
+end)
+
+-- 5. Full Moon & Lever & Bone
+local FM = v1:AddParagraph({Title = "Full Moon", Desc = ""})
+local Pullever = v1:AddParagraph({Title = "Pull Lever", Desc = "Status: "})
+local Bone = v1:AddParagraph({Title = "Bone", Desc = ""})
+
+task.spawn(function()
+    while task.wait(5) do
+        pcall(function()
+            local moonId = Lighting.Sky.MoonTextureId
+            local stages = {["9709149431"]="5/5", ["9709149052"]="4/5", ["9709143733"]="3/5", ["9709150401"]="2/5", ["9709149680"]="1/5"}
+            FM:SetDesc("Moon: " .. (stages[string.match(moonId, "%d+")] or "0/5"))
+            
+            Pullever:SetDesc(ReplicatedStorage.Remotes.CommF_:InvokeServer("CheckTempleDoor") and "✅" or "❌")
+            local bones = ReplicatedStorage.Remotes.CommF_:InvokeServer("Bones", "Check")
+            Bone:SetDesc("You Have: " .. tostring(bones) .. " Bones")
+        end)
+    end
+end)
+
+-- 6. Server Utilities
+v1:AddTextBox({
+    Title = "Input Job Id",
+    Placeholder = "Job ID",
+    Callback = function(Value) getgenv().Job = Value end
+})
+
+v1:AddToggle({
+    Title = "Spam Join",
+    Default = false,
+    Callback = function(Value) getgenv().Join = Value end
+})
+
+task.spawn(function()
+    while task.wait(1) do
+        if getgenv().Join and getgenv().Job then
+            TeleportService:TeleportToPlaceInstance(game.PlaceId, getgenv().Job, Players.LocalPlayer)
+        end
+    end
+end)
+
+v1:AddButton({
+    Title = "Join Server",
+    Callback = function() TeleportService:TeleportToPlaceInstance(game.PlaceId, getgenv().Job, Players.LocalPlayer) end
+})
+
+v1:AddButton({
+    Title = "Copy JobId",
+    Callback = function() setclipboard(tostring(game.JobId)) end
+})
+
+v1:AddButton({
+    Title = "Rejoin Server",
+    Callback = function() TeleportService:Teleport(game.PlaceId, Players.LocalPlayer) end
+})
+
+v1:AddButton({
+    Title = "Hop Server",
+    Callback = function()
+        local Http = game:GetService("HttpService")
+        local Api = "https://games.roblox.com/v1/games/" .. game.PlaceId .. "/servers/Public?sortOrder=Desc&limit=100"
+        local function GetServers(cursor)
+            return Http:JSONDecode(game:HttpGet(Api .. (cursor and "&cursor=" .. cursor or "")))
+        end
+        local Servers = GetServers()
+        TeleportService:TeleportToPlaceInstance(game.PlaceId, Servers.data[math.random(1, #Servers.data)].id, Players.LocalPlayer)
+    end
+})
+
+v1:AddButton({
+    Title = "Hop Server Less People",
+    Callback = function()
+        local Http = game:GetService("HttpService")
+        local _servers = "https://games.roblox.com/v1/games/" .. game.PlaceId .. "/servers/Public?sortOrder=Asc&limit=100"
+        local Raw = game:HttpGet(_servers)
+        local Servers = Http:JSONDecode(Raw)
+        if Servers.data[1] then
+            TeleportService:TeleportToPlaceInstance(game.PlaceId, Servers.data[1].id, Players.LocalPlayer)
+        end
+    end
+})
+
+Window:SelectTab(1)
+
+
+
 local FarmLevel = Tabs.Main:AddToggle("FarmLevel", {Title = "Auto Farm Level", Description = "", Default = false})
 FarmLevel:OnChanged(function(Value)
   _G.Level = Value
