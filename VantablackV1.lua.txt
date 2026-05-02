@@ -6412,75 +6412,7 @@ spawn(function()
     end
   end
 end)
-
-Tabs.Shop:AddSection("Auto Buy Melee")
-
-local CurrentSea_ID = game.PlaceId
-local Melee_Table = {
-    ["Dark Step (Chân Đen)"] = { Key = "BuyBlackLeg", Pos = (CurrentSea_ID == 2753310064 and CFrame.new(-985, 13, 3988)) or (CurrentSea_ID == 4442245405 and CFrame.new(-4753, 35, -4850)) or (CurrentSea_ID == 7449925015 and CFrame.new(-5045, 371, -3181)) },
-    ["Electric (Điện)"] = { Key = "BuyElectro", Pos = (CurrentSea_ID == 2753310064 and CFrame.new(-5384, 13, -2148)) or (CurrentSea_ID == 4442245405 and CFrame.new(-4867, 35, -4766)) or (CurrentSea_ID == 7449925015 and CFrame.new(-4995, 314, -3203)) },
-    ["Water Kung Fu (Võ Cá)"] = { Key = "BuyFishmanKarate", Pos = (CurrentSea_ID == 2753310064 and CFrame.new(61585, 18, 987)) or (CurrentSea_ID == 4442245405 and CFrame.new(-4958, 35, -4668)) or (CurrentSea_ID == 7449925015 and CFrame.new(-5023, 371, -3190)) },
-    ["Dragon Breath (Hơi Thở Rồng)"] = { Key = "BuyDragonClaw", Pos = (CurrentSea_ID == 4442245405 and CFrame.new(701, 187, 655)) or (CurrentSea_ID == 7449925015 and CFrame.new(-4981, 371, -3207)) },
-    ["Superhuman"] = { Key = "BuySuperhuman", Pos = (CurrentSea_ID == 4442245405 and CFrame.new(1374, 247, -5192)) or (CurrentSea_ID == 7449925015 and CFrame.new(-5004, 371, -3198)) },
-    ["Death Step (Chân Đen V2)"] = { Key = "BuyDeathStep", Pos = (CurrentSea_ID == 4442245405 and CFrame.new(6357, 296, -6762)) or (CurrentSea_ID == 7449925015 and CFrame.new(-4999, 314, -3221)) },
-    ["Sharkman Karate (Võ Cá V2)"] = { Key = "BuySharkmanKarate", Pos = (CurrentSea_ID == 4442245405 and CFrame.new(-2602, 238, -10316)) or (CurrentSea_ID == 7449925015 and CFrame.new(-4972, 314, -3222)) },
-    ["Dragon Talon (Rồng V2)"] = { Key = "BuyDragonTalon", Pos = (CurrentSea_ID == 7449925015 and CFrame.new(5661, 1211, 865)) },
-    ["Electric Claw (Điện V2)"] = { Key = "BuyElectricClaw", Pos = (CurrentSea_ID == 7449925015 and CFrame.new(-10371, 331, -10131)) },
-    ["Godhuman"] = { Key = "BuyGodhuman", Pos = (CurrentSea_ID == 7449925015 and CFrame.new(-13776, 334, -9879)) },
-    ["Sanguine Art (Võ Quỷ)"] = { Key = "BuySanguineArt", Pos = (CurrentSea_ID == 7449925015 and CFrame.new(-16353, 160, 99)) }
-}
-
--- Lọc danh sách theo Sea hiện tại
-local AvailableMelees = {}
-for Name, Data in pairs(Melee_Table) do
-    if Data.Pos then table.insert(AvailableMelees, Name) end
-end
-table.sort(AvailableMelees)
-
-local SelectedMeleeToBuy = AvailableMelees[1] or "Dark Step (Chân Đen)"
-
--- Dropdown Chọn Melee
-local MeleeDrop = Tabs.Shop:AddDropdown("MeleeDropShop", {
-    Title = "Chọn Melee Cần Mua",
-    Values = AvailableMelees,
-    Multi = false,
-    Default = SelectedMeleeToBuy,
-})
-
-MeleeDrop:OnChanged(function(Value)
-    SelectedMeleeToBuy = Value
-end)
-
--- Toggle Auto Mua
-Tabs.Shop:AddToggle("AutoBuyMeleeToggle", {
-    Title = "Auto Mua Melee",
-    Description = "Tự động bay tới NPC và mua võ đã chọn",
-    Default = false
-}):OnChanged(function(Value)
-    _G.AutoBuyMelee = Value
-    task.spawn(function()
-        while _G.AutoBuyMelee do
-            task.wait()
-            pcall(function()
-                local data = Melee_Table[SelectedMeleeToBuy]
-                if data and data.Pos then
-                    local hrp = game.Players.LocalPlayer.Character.HumanoidRootPart
-                    local dist = (hrp.Position - data.Pos.Position).Magnitude
-                    
-                    if dist > 20 then
-                        -- Sử dụng hàm 'to' có sẵn trong VantablackV1
-                        to(data.Pos) 
-                    else
-                        hrp.CFrame = data.Pos
-                        game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer(data.Key)
-                        game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("BuyItem", data.Key)
-                        task.wait(1.5)
-                    end
-                end
-            end)
-        end
-    end)
-end)
+Tabs.Shop:AddSection("Shop Options")
 Tabs.Shop:AddButton({Title = "Buy Buso", Description = "",Callback = function()
   replicated.Remotes.CommF_:InvokeServer("BuyHaki","Buso")
 end})
