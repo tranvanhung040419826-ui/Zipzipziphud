@@ -787,20 +787,21 @@ UserInputService.InputEnded:Connect(function(input)
     end
 end)
 local Tabs = {
-  Shop = Window:AddTab({Title = "Auto Shop", Icon = "shopping-cart"}),
-  Combat = Window:AddTab({Title = "Combat / PvP", Icon = "user"}),
-  Settings = Window:AddTab({Title = "Config", Icon = "rbxassetid://7734053495"}),
-  Main = Window:AddTab({Title = "Main Farm", Icon = "home"}),
-  Melee = Window:AddTab({Title = "Auto Melee", Icon = "rbxassetid://11162889532"}),
-  Quests = Window:AddTab({Title = "Material Farm", Icon = "rbxassetid://13075622619"}),
-  SeaEvent = Window:AddTab({Title = "Sea Events", Icon = "rbxassetid://10709783577"}),
-  Mirage = Window:AddTab({Title = "Race V4 / Mirage", Icon = "rbxassetid://11162889532"}),
-  Drago = Window:AddTab({Title = "Auto Dragon", Icon = "layers"}),
-  Prehistoric = Window:AddTab({Title = "Auto Prehistoric", Icon = "flame"}),
-  Raids = Window:AddTab({Title = "Auto Raid", Icon = "skull"}),
-  Travel = Window:AddTab({Title = "Teleports", Icon = "map-pin"}),
-  Fruit = Window:AddTab({Title = "Fruit Sniper", Icon = "cherry"}),
-  Misc = Window:AddTab({Title = "Misc", Icon = "rbxassetid://6031280882"})
+    Main = Window:AddTab({Title = "Main Farm", Icon = "home"}),
+    Status = Window:AddTab({Title = "Status / Server", Icon = "rbxassetid://7040410130"}),
+    Melee = Window:AddTab({Title = "Auto Melee", Icon = "rbxassetid://11162889532"}),
+    Quests = Window:AddTab({Title = "Material Farm", Icon = "rbxassetid://13075622619"}),
+    Drago = Window:AddTab({Title = "Auto Dragon", Icon = "layers"}),
+    Prehistoric = Window:AddTab({Title = "Auto Prehistoric", Icon = "flame"}),
+    SeaEvent = Window:AddTab({Title = "Sea Events", Icon = "rbxassetid://10709783577"}),
+    Mirage = Window:AddTab({Title = "Race V4 / Mirage", Icon = "rbxassetid://11162889532"}),
+    Raids = Window:AddTab({Title = "Auto Raid", Icon = "skull"}),
+    Fruit = Window:AddTab({Title = "Fruit Sniper", Icon = "cherry"}),
+    Shop = Window:AddTab({Title = "Auto Shop", Icon = "shopping-cart"}),
+    Combat = Window:AddTab({Title = "Combat / PvP", Icon = "user"}),
+    Travel = Window:AddTab({Title = "Teleports", Icon = "map-pin"}),
+    Settings = Window:AddTab({Title = "Config", Icon = "rbxassetid://7734053495"}),
+    Misc = Window:AddTab({Title = "Misc", Icon = "rbxassetid://6031280882"})
 }
  
 local FarmLevel = Tabs.Main:AddToggle("FarmLevel", {Title = "Auto Farm Level", Description = "", Default = false})
@@ -2277,6 +2278,236 @@ spawn(function()
     end)
   end
 end)
+
+local LocalTime = Tabs.Status:AddParagraph({Title = "Time Zone", Desc = ""})
+function UpdateOS()
+    date = os.date("*t")
+    hour = (date.hour) % 24
+    ampm = hour < 12 and "AM" or "PM"
+    timezone = string.format("%02i:%02i:%02i %s",((hour - 1) % 12) + 1,date.min,date.sec,ampm)
+    datetime = string.format("%02d/%02d/%04d", date.day, date.month, date.year)
+    LocalizationService = game:GetService("LocalizationService")
+    Players = game:GetService("Players")
+    player = Players.LocalPlayer
+    name = player.Name
+    result, code = pcall(function()
+        return LocalizationService:GetCountryRegionForPlayerAsync(player)
+    end)
+    LocalTime:SetDesc(datetime .. " - " .. timezone .. " [ " .. code .. " ]")
+end
+spawn(function()
+    while wait() do
+        UpdateOS()
+        game:GetService("RunService").RenderStepped:Wait()
+    end
+end)
+
+local Timmessss = Tabs.Status:AddParagraph({Title = "Time", Desc = ""})
+function UpdateTime()
+    GameTime = math.floor(workspace.DistributedGameTime + 0.5)
+    Hour = math.floor(GameTime / (60 ^ 2)) % 24
+    Minute = math.floor(GameTime / 60) % 60
+    Second = GameTime % 60
+    Timmessss:SetDesc(Hour .. " Hour (h) " ..Minute .. " Minute (m) " ..Second .. " Second (s) ")
+end
+spawn(function()
+    while wait() do
+        UpdateTime()
+        wait()
+    end
+end)
+
+local Miragecheck = Tabs.Status:AddParagraph({Title = "Mirage Island", Desc = "Status: "})
+spawn(function()
+    pcall(function()
+        while wait() do
+            if game.Workspace._WorldOrigin.Locations:FindFirstChild('Mirage Island') then
+                Miragecheck:SetDesc('Active')
+            else
+                Miragecheck:SetDesc('Inactive')
+            end
+        end
+    end)
+end)
+
+local Kitsunecheck = Tabs.Status:AddParagraph({Title = "Kitsune Island", Desc = "Status: "})
+spawn(function()
+    pcall(function()
+        while wait() do
+            if game:GetService("Workspace").Map:FindFirstChild("KitsuneIsland") then
+                Kitsunecheck:SetDesc('Active')
+            else
+                Kitsunecheck:SetDesc('Inactive')
+            end
+        end
+    end)
+end)
+
+local CPrehistoriccheck = Tabs.Status:AddParagraph({Title = "Prehistoric Island", Desc = "Status: "})
+spawn(function()
+    pcall(function()
+        while wait() do
+            if game.Workspace._WorldOrigin.Locations:FindFirstChild('Prehistoric Island') then
+                CPrehistoriccheck:SetDesc('Active')
+            else
+                CPrehistoriccheck:SetDesc('Inactive')
+            end
+        end
+    end)
+end)
+
+local FrozenIsland = Tabs.Status:AddParagraph({Title = "Frozen Dimension", Desc = "Status: "})
+spawn(function()
+    pcall(function()
+        while wait() do
+            if game.Workspace._WorldOrigin.Locations:FindFirstChild('Frozen Dimension') then
+                FrozenIsland:SetDesc('Active')
+            else
+                FrozenIsland:SetDesc('Inactive')
+            end
+        end
+    end)
+end)
+
+local MobCakePrince = Tabs.Status:AddParagraph({Title = "Dimension Killed", Desc = ""})
+spawn(function()
+    while wait() do
+        pcall(function()
+            local response = game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("CakePrinceSpawner")
+            local len = string.len(response)
+            if len == 88 then
+                MobCakePrince:SetDesc("Kill : " .. string.sub(response, 39, 41))
+            elseif len == 87 then
+                MobCakePrince:SetDesc("Kill : " .. string.sub(response, 39, 40))
+            elseif len == 86 then
+                MobCakePrince:SetDesc("Kill : " .. string.sub(response, 39, 39) .. " ")
+            else
+                MobCakePrince:SetDesc("Cake Prince : Active")
+            end
+        end)
+    end
+end)
+
+local TyrantStatus = Tabs.Status:AddParagraph({Title = "Tyrant of the Skies", Desc = "Status: "})
+spawn(function()
+    pcall(function()
+        while wait() do
+            if game:GetService("Workspace").Enemies:FindFirstChild("Tyrant of the Skies") then
+                TyrantStatus:SetDesc("Status : Active")
+            else
+                TyrantStatus:SetDesc("Status : Inactive")
+            end
+        end
+    end)
+end)
+
+local CheckRip = Tabs.Status:AddParagraph({Title = "Rip Indra", Desc = "Status: "})
+spawn(function()
+    while wait() do
+        pcall(function()
+            if game:GetService("ReplicatedStorage"):FindFirstChild("rip_indra True Form") 
+            or game:GetService("Workspace").Enemies:FindFirstChild("rip_indra") then
+                CheckRip:SetDesc("Status : Active")
+            else
+                CheckRip:SetDesc("Status : Inactive")
+            end
+        end)
+    end
+end)
+
+local CheckDoughKing = Tabs.Status:AddParagraph({Title = "Dough King", Desc = "Status: "})
+spawn(function()
+    while wait() do
+        pcall(function()
+            if game:GetService("ReplicatedStorage"):FindFirstChild("Dough King") 
+            or game:GetService("Workspace").Enemies:FindFirstChild("Dough King") then
+                CheckDoughKing:SetDesc("Status : Active")
+            else
+                CheckDoughKing:SetDesc("Status : Inactive")
+            end
+        end)
+    end
+end)
+
+local EliteHunter = Tabs.Status:AddParagraph({Title = "Elite Hunter", Desc = "Status: "})
+spawn(function()
+    while wait() do
+        pcall(function()
+            local rs = game:GetService("ReplicatedStorage")
+            local ws = game:GetService("Workspace").Enemies
+            local progress = rs.Remotes.CommF_:InvokeServer("EliteHunter", "Progress")
+            if rs:FindFirstChild("Diablo") or rs:FindFirstChild("Deandre") or rs:FindFirstChild("Urban")
+            or ws:FindFirstChild("Diablo") or ws:FindFirstChild("Deandre") or ws:FindFirstChild("Urban") then
+                EliteHunter:SetDesc("Status : Active | Killed: " .. progress)
+            else
+                EliteHunter:SetDesc("Status : Inactive | Killed: " .. progress)
+            end
+        end)
+    end
+end)
+
+local Pullever = Tabs.Status:AddParagraph({Title = "Pull Lever", Desc = "Status: "})
+spawn(function()
+    while wait() do
+        pcall(function()
+            if game.ReplicatedStorage.Remotes.CommF_:InvokeServer("CheckTempleDoor") then
+                Pullever:SetDesc("Active")
+            else
+                Pullever:SetDesc("Inactive")
+            end
+        end)
+    end
+end)
+
+local FM = Tabs.Status:AddParagraph({Title = "Full Moon", Desc = ""})
+spawn(function()
+    while wait() do
+        pcall(function()
+            local moonId = game:GetService("Lighting").Sky.MoonTextureId
+            if moonId == "http://www.roblox.com/asset/?id=9709149431" then
+                FM:SetDesc("Moon: 5/5")
+            elseif moonId == "http://www.roblox.com/asset/?id=9709149052" then
+                FM:SetDesc("Moon: 4/5")
+            elseif moonId == "http://www.roblox.com/asset/?id=9709143733" then
+                FM:SetDesc("Moon: 3/5")
+            elseif moonId == "http://www.roblox.com/asset/?id=9709150401" then
+                FM:SetDesc("Moon: 2/5")
+            elseif moonId == "http://www.roblox.com/asset/?id=9709149680" then
+                FM:SetDesc("Moon: 1/5")
+            else
+                FM:SetDesc("Moon: 0/5")
+            end
+        end)
+    end
+end)
+
+local LegendarySword = Tabs.Status:AddParagraph({Title = "Legendary Sword", Desc = "Status: "})
+spawn(function()
+    pcall(function()
+        while wait() do
+            local rs = game:GetService("ReplicatedStorage").Remotes.CommF_   
+            if rs:InvokeServer("LegendarySwordDealer", "1") then
+                LegendarySword:SetDesc("Shisui")
+            elseif rs:InvokeServer("LegendarySwordDealer", "2") then
+                LegendarySword:SetDesc("Wando")
+            elseif rs:InvokeServer("LegendarySwordDealer", "3") then
+                LegendarySword:SetDesc("Saddi")
+            else
+                LegendarySword:SetDesc("Not Found")
+            end
+        end
+    end)
+end)
+
+local Bone = Tabs.Status:AddParagraph({Title = "Bone", Desc = ""})
+spawn(function()
+    pcall(function()
+        while wait() do
+            local bones = game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("Bones", "Check")
+            Bone:SetDesc("You Have : " .. tostring(bones) .. " Bones")
+        end
+    end)
+end) 
 
 local Initialize = Tabs.Settings:AddToggle("Initialize", {Title = "Initialize Attack [M1/Melee/Sword]", Description = "[ Not Supported Gas M1 ]", Default = true})
 Initialize:OnChanged(function(Value)
@@ -6387,41 +6618,84 @@ Tabs.Shop:AddButton({Title = "Buy Ken", Description = "",Callback = function()
   replicated.Remotes.CommF_:InvokeServer("KenTalk","Buy")
 end})
 
-Tabs.Shop:AddSection("Fighting - Style")
-Tabs.Shop:AddButton({Title = "Buy Black Leg", Description = "",Callback = function()
-  replicated.Remotes.CommF_:InvokeServer("BuyBlackLeg")
-end})
-Tabs.Shop:AddButton({Title = "Buy Electro", Description = "",Callback = function()
-  replicated.Remotes.CommF_:InvokeServer("BuyElectro")
-end})
-Tabs.Shop:AddButton({Title = "Buy Fishman Karate", Description = "",Callback = function()
-  replicated.Remotes.CommF_:InvokeServer("BuyFishmanKarate")
-end})
-Tabs.Shop:AddButton({Title = "Buy DragonClaw", Description = "",Callback = function()
-  replicated.Remotes.CommF_:InvokeServer("BlackbeardReward","DragonClaw","2")
-end})
-Tabs.Shop:AddButton({Title = "Buy Superhuman", Description = "",Callback = function()
-  replicated.Remotes.CommF_:InvokeServer("BuySuperhuman")
-end})
-Tabs.Shop:AddButton({Title = "Buy Death Step", Description = "",Callback = function()
-  replicated.Remotes.CommF_:InvokeServer("BuyDeathStep")
-end})
-Tabs.Shop:AddButton({Title = "Buy Sharkman Karate", Description = "",Callback = function()
-  replicated.Remotes.CommF_:InvokeServer("BuySharkmanKarate")
-end})
-Tabs.Shop:AddButton({Title = "Buy ElectricClaw", Description = "",Callback = function()
-  replicated.Remotes.CommF_:InvokeServer("BuyElectricClaw")
-end})
-Tabs.Shop:AddButton({Title = "Buy DragonTalon", Description = "",Callback = function()
-  replicated.Remotes.CommF_:InvokeServer("BuyDragonTalon")
-end})
-Tabs.Shop:AddButton({Title = "Buy Godhuman", Description = "",Callback = function()
-  replicated.Remotes.CommF_:InvokeServer("BuyGodhuman")
-end})
-Tabs.Shop:AddButton({Title = "Buy SanguineArt", Description = "",Callback = function()
-  replicated.Remotes.CommF_:InvokeServer("BuySanguineArt")
+
+Tabs.Shop:AddSection("Fighting Style")
+-- Copy đoạn này dán vào Tabs.Shop của bạn nhé
+Tabs.Shop:AddButton({Title = "Buy Black Leg", Description = "", Callback = function()
+    spawn(function()
+        local p = World1 and CFrame.new(-985, 13, 3988) or World2 and CFrame.new(-4753, 35, -4850) or World3 and CFrame.new(-5045, 371, -3181)
+        repeat task.wait() _tp(p) until (plr.Character.HumanoidRootPart.Position - p.Position).Magnitude < 20
+        replicated.Remotes.CommF_:InvokeServer("BuyBlackLeg")
+    end)
 end})
 
+Tabs.Shop:AddButton({Title = "Buy Electro", Description = "", Callback = function()
+    spawn(function()
+        local p = World1 and CFrame.new(-5384, 13, -2148) or World2 and CFrame.new(-4867, 35, -4766) or World3 and CFrame.new(-4995, 314, -3203)
+        repeat task.wait() _tp(p) until (plr.Character.HumanoidRootPart.Position - p.Position).Magnitude < 20
+        replicated.Remotes.CommF_:InvokeServer("BuyElectro")
+    end)
+end})
+
+Tabs.Shop:AddButton({Title = "Buy Fishman", Description = "", Callback = function()
+    spawn(function()
+        local p = World1 and CFrame.new(61585, 18, 987) or World2 and CFrame.new(-4958, 35, -4668) or World3 and CFrame.new(-5023, 371, -3190)
+        repeat task.wait() _tp(p) until (plr.Character.HumanoidRootPart.Position - p.Position).Magnitude < 20
+        replicated.Remotes.CommF_:InvokeServer("BuyFishmanKarate")
+    end)
+end})
+
+Tabs.Shop:AddButton({Title = "Buy DragonClaw", Description = "", Callback = function()
+    spawn(function()
+        local p = World2 and CFrame.new(701, 187, 655) or World3 and CFrame.new(-4981, 371, -3207)
+        repeat task.wait() _tp(p) until (plr.Character.HumanoidRootPart.Position - p.Position).Magnitude < 20
+        replicated.Remotes.CommF_:InvokeServer("BlackbeardReward","DragonClaw","2")
+    end)
+end})
+
+Tabs.Shop:AddButton({Title = "Buy Superhuman", Description = "", Callback = function()
+    spawn(function()
+        local p = World2 and CFrame.new(1374, 247, -5192) or World3 and CFrame.new(-5004, 371, -3198)
+        repeat task.wait() _tp(p) until (plr.Character.HumanoidRootPart.Position - p.Position).Magnitude < 20
+        replicated.Remotes.CommF_:InvokeServer("BuySuperhuman")
+    end)
+end})
+
+Tabs.Shop:AddButton({Title = "Buy Death Step", Description = "", Callback = function()
+    spawn(function()
+        local p = World2 and CFrame.new(6357, 296, -6762) or World3 and CFrame.new(-4999, 314, -3221)
+        repeat task.wait() _tp(p) until (plr.Character.HumanoidRootPart.Position - p.Position).Magnitude < 20
+        replicated.Remotes.CommF_:InvokeServer("BuyDeathStep")
+    end)
+end})
+
+Tabs.Shop:AddButton({Title = "Buy Sharkman", Description = "", Callback = function()
+    spawn(function()
+        local p = World2 and CFrame.new(-2602, 238, -10316) or World3 and CFrame.new(-4972, 314, -3222)
+        repeat task.wait() _tp(p) until (plr.Character.HumanoidRootPart.Position - p.Position).Magnitude < 20
+        replicated.Remotes.CommF_:InvokeServer("BuySharkmanKarate")
+    end)
+end})
+
+Tabs.Shop:AddButton({Title = "Buy Godhuman", Description = "", Callback = function()
+    spawn(function()
+        local p = World3 and CFrame.new(-13776, 334, -9879)
+        if p then
+            repeat task.wait() _tp(p) until (plr.Character.HumanoidRootPart.Position - p.Position).Magnitude < 20
+            replicated.Remotes.CommF_:InvokeServer("BuyGodhuman")
+        end
+    end)
+end})
+
+Tabs.Shop:AddButton({Title = "Buy Ken", Description = "", Callback = function()
+    spawn(function()
+        local p = World1 and CFrame.new(-5227, 431, -2280) or World3 and CFrame.new(-12461, 332, -10043)
+        if p then
+            repeat task.wait() _tp(p) until (plr.Character.HumanoidRootPart.Position - p.Position).Magnitude < 20
+            if World1 then replicated.Remotes.CommF_:InvokeServer("KenTalk") else replicated.Remotes.CommF_:InvokeServer("HungryMan","Buy") end
+        end
+    end)
+end})
 Tabs.Shop:AddSection("Accessory")
 Tabs.Shop:AddButton({Title = "Buy Tomoe Ring", Description = "",Callback = function()
   replicated.Remotes.CommF_:InvokeServer("BuyItem","Tomoe Ring")
