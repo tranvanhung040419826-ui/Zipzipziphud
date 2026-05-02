@@ -787,7 +787,6 @@ UserInputService.InputEnded:Connect(function(input)
     end
 end)
 local Tabs = {
-  Status = Window:AddTab({Title = "Status / Server", Icon = "rbxassetid://7040410130"}),
   Shop = Window:AddTab({Title = "Auto Shop", Icon = "shopping-cart"}),
   Combat = Window:AddTab({Title = "Combat / PvP", Icon = "user"}),
   Settings = Window:AddTab({Title = "Config", Icon = "rbxassetid://7734053495"}),
@@ -803,6 +802,7 @@ local Tabs = {
   Fruit = Window:AddTab({Title = "Fruit Sniper", Icon = "cherry"}),
   Misc = Window:AddTab({Title = "Misc", Icon = "rbxassetid://6031280882"})
 }
+ 
 local FarmLevel = Tabs.Main:AddToggle("FarmLevel", {Title = "Auto Farm Level", Description = "", Default = false})
 FarmLevel:OnChanged(function(Value)
   _G.Level = Value
