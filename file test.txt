@@ -786,7 +786,8 @@ UserInputService.InputEnded:Connect(function(input)
         dragging = false
     end
 end)
-Local Tabs = {
+local Tabs = {
+  Status = Window:AddTab({Title = "Player Status", Icon = "activity"}),
   Shop = Window:AddTab({Title = "Auto Shop", Icon = "shopping-cart"}),
   Combat = Window:AddTab({Title = "Combat / PvP", Icon = "user"}),
   Settings = Window:AddTab({Title = "Config", Icon = "rbxassetid://7734053495"}),
@@ -801,10 +802,8 @@ Local Tabs = {
   Travel = Window:AddTab({Title = "Teleports", Icon = "map-pin"}),
   Fruit = Window:AddTab({Title = "Fruit Sniper", Icon = "cherry"}),
   Misc = Window:AddTab({Title = "Misc", Icon = "rbxassetid://6031280882"}),
-  Status = Window:AddTab({Title = "Player Status", Icon = "activity"})
 }
 
- 
 local FarmLevel = Tabs.Main:AddToggle("FarmLevel", {Title = "Auto Farm Level", Description = "", Default = false})
 FarmLevel:OnChanged(function(Value)
   _G.Level = Value
@@ -7062,29 +7061,36 @@ task.spawn(function()
 end)
 local plr = game.Players.LocalPlayer
 
+-- Lấy Country Code 1 lần duy nhất để tránh bị Roblox cấm do spam API mỗi giây
+local countryCode = "Unknown"
+pcall(function()
+    countryCode = game:GetService("LocalizationService"):GetCountryRegionForPlayerAsync(plr)
+end)
+
 -- 1. Time Zone Status
-local TimeStatus = Tabs.Status:AddParagraph({Title = "Time Zone", Desc = ""})
-spawn(function()
-    while wait(1) do
+local TimeStatus = Tabs.Status:AddParagraph({Title = "Time Zone", Content = ""})
+task.spawn(function()
+    while task.wait(1) do
         pcall(function()
             local date = os.date("*t")
-            local hour = (date.hour) % 24
+            local hour = date.hour
             local ampm = hour < 12 and "AM" or "PM"
-            local timezone = string.format("%02i:%02i:%02i %s", ((hour - 1) % 12) + 1, date.min, date.sec, ampm)
+            local displayHour = hour % 12
+            if displayHour == 0 then displayHour = 12 end
+            local timezone = string.format("%02d:%02d:%02d %s", displayHour, date.min, date.sec, ampm)
             local datetime = string.format("%02d/%02d/%04d", date.day, date.month, date.year)
-            local code = game:GetService("LocalizationService"):GetCountryRegionForPlayerAsync(plr)
-            TimeStatus:SetDesc(datetime .. " - " .. timezone .. " [ " .. code .. " ]")
+            TimeStatus:SetDesc(datetime .. " - " .. timezone .. " [ " .. countryCode .. " ]")
         end)
     end
 end)
 
 -- 2. Session Time
-local SessionTime = Tabs.Status:AddParagraph({Title = "Session Time", Desc = ""})
-spawn(function()
-    while wait(1) do
+local SessionTime = Tabs.Status:AddParagraph({Title = "Session Time", Content = ""})
+task.spawn(function()
+    while task.wait(1) do
         pcall(function()
             local GameTime = math.floor(workspace.DistributedGameTime + 0.5)
-            local Hour = math.floor(GameTime / 3600) % 24
+            local Hour = math.floor(GameTime / 3600)
             local Minute = math.floor(GameTime / 60) % 60
             local Second = GameTime % 60
             SessionTime:SetDesc(Hour .. "h " .. Minute .. "m " .. Second .. "s")
@@ -7093,9 +7099,9 @@ spawn(function()
 end)
 
 -- 3. Mirage Island Status
-local MirageCheck = Tabs.Status:AddParagraph({Title = "Mirage Island", Desc = "Status: "})
-spawn(function()
-    while wait(2) do
+local MirageCheck = Tabs.Status:AddParagraph({Title = "Mirage Island", Content = "Status: "})
+task.spawn(function()
+    while task.wait(2) do
         pcall(function()
             local status = game.Workspace._WorldOrigin.Locations:FindFirstChild('Mirage Island') and "✅" or "❌"
             MirageCheck:SetDesc("Status: " .. status)
@@ -7104,9 +7110,9 @@ spawn(function()
 end)
 
 -- 4. Kitsune Island Status
-local KitsuneCheck = Tabs.Status:AddParagraph({Title = "Kitsune Island", Desc = "Status: "})
-spawn(function()
-    while wait(2) do
+local KitsuneCheck = Tabs.Status:AddParagraph({Title = "Kitsune Island", Content = "Status: "})
+task.spawn(function()
+    while task.wait(2) do
         pcall(function()
             local status = game:GetService("Workspace").Map:FindFirstChild("KitsuneIsland") and "✅" or "❌"
             KitsuneCheck:SetDesc("Status: " .. status)
@@ -7115,9 +7121,9 @@ spawn(function()
 end)
 
 -- 5. Prehistoric Island Status
-local PrehistoricCheck = Tabs.Status:AddParagraph({Title = "Prehistoric Island", Desc = "Status: "})
-spawn(function()
-    while wait(2) do
+local PrehistoricCheck = Tabs.Status:AddParagraph({Title = "Prehistoric Island", Content = "Status: "})
+task.spawn(function()
+    while task.wait(2) do
         pcall(function()
             local status = game.Workspace._WorldOrigin.Locations:FindFirstChild('Prehistoric Island') and "✅" or "❌"
             PrehistoricCheck:SetDesc("Status: " .. status)
@@ -7126,9 +7132,9 @@ spawn(function()
 end)
 
 -- 6. Frozen Dimension Status
-local FrozenCheck = Tabs.Status:AddParagraph({Title = "Frozen Dimension", Desc = "Status: "})
-spawn(function()
-    while wait(2) do
+local FrozenCheck = Tabs.Status:AddParagraph({Title = "Frozen Dimension", Content = "Status: "})
+task.spawn(function()
+    while task.wait(2) do
         pcall(function()
             local status = game.Workspace._WorldOrigin.Locations:FindFirstChild('Frozen Dimension') and "✅" or "❌"
             FrozenCheck:SetDesc("Status: " .. status)
@@ -7137,28 +7143,28 @@ spawn(function()
 end)
 
 -- 7. Cake Prince Kill Counter
-local CakePrinceStatus = Tabs.Status:AddParagraph({Title = "Dimension Killed", Desc = ""})
-spawn(function()
-    while wait(2) do
+local CakePrinceStatus = Tabs.Status:AddParagraph({Title = "Dimension Killed", Content = ""})
+task.spawn(function()
+    while task.wait(2) do
         pcall(function()
             local response = game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("CakePrinceSpawner")
-            if string.len(response) == 88 then
-                CakePrinceStatus:SetDesc("Kill: " .. string.sub(response, 39, 41))
-            elseif string.len(response) == 87 then
-                CakePrinceStatus:SetDesc("Kill: " .. string.sub(response, 39, 40))
-            elseif string.len(response) == 86 then
-                CakePrinceStatus:SetDesc("Kill: " .. string.sub(response, 39, 39))
-            else
-                CakePrinceStatus:SetDesc("Cake Prince: ✅")
+            if type(response) == "string" then
+                -- Dùng regex tìm số an toàn hơn thay vì string.sub cố định
+                local killed = string.match(response, "%d+")
+                if killed then
+                    CakePrinceStatus:SetDesc("Killed: " .. tostring(500 - tonumber(killed)))
+                else
+                    CakePrinceStatus:SetDesc("Cake Prince: ✅")
+                end
             end
         end)
     end
 end)
 
 -- 8. Boss Status (Tyrant, Rip Indra, Dough King)
-local BossStatus = Tabs.Status:AddParagraph({Title = "World Bosses", Desc = ""})
-spawn(function()
-    while wait(3) do
+local BossStatus = Tabs.Status:AddParagraph({Title = "World Bosses", Content = ""})
+task.spawn(function()
+    while task.wait(3) do
         pcall(function()
             local tyrant = game:GetService("Workspace").Enemies:FindFirstChild("Tyrant of the Skies") and "✅" or "❌"
             local indra = (game:GetService("ReplicatedStorage"):FindFirstChild("rip_indra True Form") or game:GetService("Workspace").Enemies:FindFirstChild("rip_indra")) and "✅" or "❌"
@@ -7169,23 +7175,23 @@ spawn(function()
 end)
 
 -- 9. Elite Hunter Status
-local EliteStatus = Tabs.Status:AddParagraph({Title = "Elite Hunter", Desc = ""})
-spawn(function()
-    while wait(4) do
+local EliteStatus = Tabs.Status:AddParagraph({Title = "Elite Hunter", Content = ""})
+task.spawn(function()
+    while task.wait(4) do
         pcall(function()
             local rs = game:GetService("ReplicatedStorage")
             local ws = game:GetService("Workspace").Enemies
             local progress = rs.Remotes.CommF_:InvokeServer("EliteHunter", "Progress")
             local spawned = (rs:FindFirstChild("Diablo") or rs:FindFirstChild("Deandre") or rs:FindFirstChild("Urban") or ws:FindFirstChild("Diablo") or ws:FindFirstChild("Deandre") or ws:FindFirstChild("Urban")) and "✅" or "❌"
-            EliteStatus:SetDesc("Status: " .. spawned .. " | Killed: " .. progress)
+            EliteStatus:SetDesc("Status: " .. spawned .. " | Killed: " .. tostring(progress))
         end)
     end
 end)
 
 -- 10. Moon Phase Status
-local MoonStatus = Tabs.Status:AddParagraph({Title = "Full Moon Phase", Desc = ""})
-spawn(function()
-    while wait(5) do
+local MoonStatus = Tabs.Status:AddParagraph({Title = "Full Moon Phase", Content = ""})
+task.spawn(function()
+    while task.wait(5) do
         pcall(function()
             local moonId = game:GetService("Lighting").Sky.MoonTextureId
             local phase = "0/5"
@@ -7200,9 +7206,9 @@ spawn(function()
 end)
 
 -- 11. Bone & Sword Check
-local InventoryStatus = Tabs.Status:AddParagraph({Title = "Inventory / Dealer", Desc = ""})
-spawn(function()
-    while wait(5) do
+local InventoryStatus = Tabs.Status:AddParagraph({Title = "Inventory / Dealer", Content = ""})
+task.spawn(function()
+    while task.wait(5) do
         pcall(function()
             local bones = game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("Bones", "Check")
             local rs = game:GetService("ReplicatedStorage").Remotes.CommF_
